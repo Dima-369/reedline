@@ -119,6 +119,11 @@ pub trait Prompt: Send {
         None
     }
 
+    /// Get the default multiline indicator background color
+    fn get_multiline_indicator_background_color(&self) -> Option<Color> {
+        None
+    }
+
     /// Whether to render right prompt on the last line
     fn right_prompt_on_last_line(&self) -> bool {
         false

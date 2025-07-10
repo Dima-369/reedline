@@ -16,6 +16,7 @@ pub(crate) struct PromptLines<'prompt> {
     pub(crate) after_cursor: Cow<'prompt, str>,
     pub(crate) hint: Cow<'prompt, str>,
     pub(crate) right_prompt_on_last_line: bool,
+    pub(crate) is_multiline_indicator: bool,
 }
 
 impl<'prompt> PromptLines<'prompt> {
@@ -38,6 +39,8 @@ impl<'prompt> PromptLines<'prompt> {
             None => prompt.render_prompt_indicator(prompt_mode),
         };
 
+        let is_multiline_indicator = prompt_indicator.contains('\n');
+
         let before_cursor = coerce_crlf(before_cursor);
         let after_cursor = coerce_crlf(after_cursor);
         let hint = coerce_crlf(hint);
@@ -51,6 +54,7 @@ impl<'prompt> PromptLines<'prompt> {
             after_cursor,
             hint,
             right_prompt_on_last_line,
+            is_multiline_indicator,
         }
     }
 

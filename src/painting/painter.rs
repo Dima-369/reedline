@@ -357,6 +357,13 @@ impl Painter {
         if use_ansi_coloring {
             self.stdout
                 .queue(SetForegroundColor(prompt.get_prompt_color()))?;
+            if let Some(bg_color) = if lines.is_multiline_indicator {
+                prompt.get_multiline_indicator_background_color()
+            } else {
+                prompt.get_indicator_background_color()
+            } {
+                self.stdout.queue(SetBackgroundColor(bg_color))?;
+            }
         }
 
         self.stdout
@@ -368,7 +375,11 @@ impl Painter {
         if use_ansi_coloring {
             self.stdout
                 .queue(SetForegroundColor(prompt.get_indicator_color()))?;
-            if let Some(bg_color) = prompt.get_indicator_background_color() {
+            if let Some(bg_color) = if lines.is_multiline_indicator {
+                prompt.get_multiline_indicator_background_color()
+            } else {
+                prompt.get_indicator_background_color()
+            } {
                 self.stdout.queue(SetBackgroundColor(bg_color))?;
             }
         }
@@ -438,6 +449,13 @@ impl Painter {
         if use_ansi_coloring {
             self.stdout
                 .queue(SetForegroundColor(prompt.get_prompt_color()))?;
+            if let Some(bg_color) = if lines.is_multiline_indicator {
+                prompt.get_multiline_indicator_background_color()
+            } else {
+                prompt.get_indicator_background_color()
+            } {
+                self.stdout.queue(SetBackgroundColor(bg_color))?;
+            }
         }
 
         // In case the prompt is made out of multiple lines, the prompt is split by
@@ -463,7 +481,11 @@ impl Painter {
         if use_ansi_coloring {
             self.stdout
                 .queue(SetForegroundColor(prompt.get_indicator_color()))?;
-            if let Some(bg_color) = prompt.get_indicator_background_color() {
+            if let Some(bg_color) = if lines.is_multiline_indicator {
+                prompt.get_multiline_indicator_background_color()
+            } else {
+                prompt.get_indicator_background_color()
+            } {
                 self.stdout.queue(SetBackgroundColor(bg_color))?;
             }
         }
