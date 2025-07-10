@@ -89,6 +89,10 @@ impl Prompt for DefaultPrompt {
             prefix, history_search.term
         ))
     }
+
+    fn get_indicator_background_color(&self) -> Option<crossterm::style::Color> {
+        None
+    }
 }
 
 impl Default for DefaultPrompt {

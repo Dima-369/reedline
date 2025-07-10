@@ -114,6 +114,11 @@ pub trait Prompt: Send {
         DEFAULT_PROMPT_RIGHT_COLOR
     }
 
+    /// Get the default indicator background color
+    fn get_indicator_background_color(&self) -> Option<Color> {
+        None
+    }
+
     /// Whether to render right prompt on the last line
     fn right_prompt_on_last_line(&self) -> bool {
         false

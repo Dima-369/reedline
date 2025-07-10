@@ -1,8 +1,33 @@
-use nu_ansi_term::Style;
+use nu_ansi_term::{Color, Style};
 
 use crate::Prompt;
 
 use super::utils::strip_ansi;
+
+/// Converts a `crossterm::style::Color` to a `nu_ansi_term::Color`.
+fn convert_color(color: crossterm::style::Color) -> Color {
+    match color {
+        crossterm::style::Color::Black => Color::Black,
+        crossterm::style::Color::DarkGrey => Color::Black,
+        crossterm::style::Color::Red => Color::Red,
+        crossterm::style::Color::DarkRed => Color::Red,
+        crossterm::style::Color::Green => Color::Green,
+        crossterm::style::Color::DarkGreen => Color::Green,
+        crossterm::style::Color::Yellow => Color::Yellow,
+        crossterm::style::Color::DarkYellow => Color::Yellow,
+        crossterm::style::Color::Blue => Color::Blue,
+        crossterm::style::Color::DarkBlue => Color::Blue,
+        crossterm::style::Color::Magenta => Color::Purple,
+        crossterm::style::Color::DarkMagenta => Color::Purple,
+        crossterm::style::Color::Cyan => Color::Cyan,
+        crossterm::style::Color::DarkCyan => Color::Cyan,
+        crossterm::style::Color::White => Color::White,
+        crossterm::style::Color::Grey => Color::White,
+        crossterm::style::Color::Rgb { r, g, b } => Color::Rgb(r, g, b),
+        crossterm::style::Color::AnsiValue(val) => Color::Fixed(val),
+        crossterm::style::Color::Reset => Color::Default,
+    }
+}
 
 /// A representation of a buffer with styling, used for doing syntax highlighting
 #[derive(Clone)]
@@ -108,13 +133,26 @@ impl StyledText {
         let mut right_string = String::new();
 
         let multiline_prompt = prompt.render_prompt_multiline_indicator();
-        let prompt_style = Style::new().fg(prompt.get_prompt_multiline_color());
+        let mut prompt_style = Style::new().fg(prompt.get_prompt_multiline_color());
+        if let Some(bg_color) = prompt.get_indicator_background_color() {
+            prompt_style = prompt_style.on(convert_color(bg_color));
+        }
 
         for pair in &self.buffer {
             if current_idx >= insertion_point {
-                right_string.push_str(&render_as_string(pair, &prompt_style, &multiline_prompt));
+                right_string.push_str(&render_as_string(
+                    pair,
+                    &prompt_style,
+                    &multiline_prompt,
+                    prompt,
+                ));
             } else if pair.1.len() + current_idx <= insertion_point {
-                left_string.push_str(&render_as_string(pair, &prompt_style, &multiline_prompt));
+                left_string.push_str(&render_as_string(
+                    pair,
+                    &prompt_style,
+                    &multiline_prompt,
+                    prompt,
+                ));
             } else if pair.1.len() + current_idx > insertion_point {
                 let offset = insertion_point - current_idx;
 
@@ -125,11 +163,13 @@ impl StyledText {
                     &(pair.0, left_side),
                     &prompt_style,
                     &multiline_prompt,
+                    prompt,
                 ));
                 right_string.push_str(&render_as_string(
                     &(pair.0, right_side),
                     &prompt_style,
                     &multiline_prompt,
+                    prompt,
                 ));
             }
             current_idx += pair.1.len();
@@ -160,12 +200,19 @@ fn render_as_string(
     renderable: &(Style, String),
     prompt_style: &Style,
     multiline_prompt: &str,
+    _prompt: &dyn Prompt,
 ) -> String {
     let mut rendered = String::new();
-    let formatted_multiline_prompt = format!("\n{multiline_prompt}");
+    let trimmed_multiline_prompt = multiline_prompt.trim_end();
+    let trailing_whitespace = &multiline_prompt[trimmed_multiline_prompt.len()..];
+
+    let mut styled_multiline_prompt = prompt_style.paint(trimmed_multiline_prompt).to_string();
+    styled_multiline_prompt.push_str(trailing_whitespace);
+
+    let formatted_multiline_prompt = format!("\n{styled_multiline_prompt}");
     for (line_number, line) in renderable.1.split('\n').enumerate() {
         if line_number != 0 {
-            rendered.push_str(&prompt_style.paint(&formatted_multiline_prompt).to_string());
+            rendered.push_str(&formatted_multiline_prompt);
         }
         rendered.push_str(&renderable.0.paint(line).to_string());
     }

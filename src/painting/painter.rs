@@ -9,7 +9,9 @@ use {
     },
     crossterm::{
         cursor::{self, MoveTo, RestorePosition, SavePosition},
-        style::{Attribute, Print, ResetColor, SetAttribute, SetForegroundColor},
+        style::{
+            Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor,
+        },
         terminal::{self, Clear, ClearType},
         QueueableCommand,
     },
@@ -360,13 +362,26 @@ impl Painter {
         self.stdout
             .queue(Print(&coerce_crlf(&lines.prompt_str_left)))?;
 
+        let trimmed_indicator = lines.prompt_indicator.trim_end();
+        let trailing_whitespace = &lines.prompt_indicator[trimmed_indicator.len()..];
+
         if use_ansi_coloring {
             self.stdout
                 .queue(SetForegroundColor(prompt.get_indicator_color()))?;
+            if let Some(bg_color) = prompt.get_indicator_background_color() {
+                self.stdout.queue(SetBackgroundColor(bg_color))?;
+            }
         }
 
         self.stdout
-            .queue(Print(&coerce_crlf(&lines.prompt_indicator)))?;
+            .queue(Print(&coerce_crlf(trimmed_indicator)))?;
+
+        if use_ansi_coloring {
+            self.stdout.queue(ResetColor)?;
+        }
+
+        self.stdout
+            .queue(Print(&coerce_crlf(trailing_whitespace)))?;
 
         if use_ansi_coloring {
             self.stdout
@@ -442,16 +457,25 @@ impl Painter {
         // Adjusting extra_rows base on the calculated prompt line size
         let extra_rows = extra_rows.saturating_sub(prompt_lines);
 
+        let trimmed_indicator = lines.prompt_indicator.trim_end();
+        let trailing_whitespace = &lines.prompt_indicator[trimmed_indicator.len()..];
+
         if use_ansi_coloring {
             self.stdout
                 .queue(SetForegroundColor(prompt.get_indicator_color()))?;
+            if let Some(bg_color) = prompt.get_indicator_background_color() {
+                self.stdout.queue(SetBackgroundColor(bg_color))?;
+            }
         }
-        let indicator_skipped = skip_buffer_lines(&lines.prompt_indicator, extra_rows, None);
+        let indicator_skipped = skip_buffer_lines(trimmed_indicator, extra_rows, None);
         self.stdout.queue(Print(&coerce_crlf(indicator_skipped)))?;
 
         if use_ansi_coloring {
             self.stdout.queue(ResetColor)?;
         }
+
+        let whitespace_skipped = skip_buffer_lines(trailing_whitespace, extra_rows, None);
+        self.stdout.queue(Print(&coerce_crlf(whitespace_skipped)))?;
 
         // The minimum number of lines from the menu are removed from the buffer if there is no more
         // space to print the menu. This will only happen if the cursor is at the last line and
