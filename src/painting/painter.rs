@@ -426,9 +426,10 @@ impl Painter {
         // indicator is printed in the same line as the first line of the buffer
         let prompt_lines = lines.prompt_lines_with_wrap(screen_width) as usize;
 
-        let prompt_indicator_lines = &lines.prompt_indicator.lines().count();
+        let prompt_indicator_lines = lines.prompt_indicator.lines().count();
         let before_cursor_lines = lines.before_cursor.lines().count();
-        let total_lines_before = prompt_lines + prompt_indicator_lines + before_cursor_lines - 1;
+        let total_lines_before =
+            (prompt_lines + prompt_indicator_lines + before_cursor_lines).saturating_sub(1);
 
         // Extra rows represent how many rows are "above" the visible area in the terminal
         let extra_rows = (total_lines_before).saturating_sub(screen_height as usize);
