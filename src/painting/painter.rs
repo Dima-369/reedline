@@ -373,8 +373,7 @@ impl Painter {
             }
         }
 
-        self.stdout
-            .queue(Print(&coerce_crlf(trimmed_indicator)))?;
+        self.stdout.queue(Print(&coerce_crlf(trimmed_indicator)))?;
 
         if use_ansi_coloring {
             self.stdout.queue(ResetColor)?;

@@ -1,3 +1,9 @@
+# Patches
+
+- allow setting indicator colors, foreground and background, in `Prompt` trait
+
+# Original README
+
 # A feature-rich line editor - powering Nushell
 
 ![GitHub](https://img.shields.io/github/license/nushell/reedline)
