@@ -5,7 +5,7 @@ use crate::Prompt;
 use super::utils::strip_ansi;
 
 /// Converts a `crossterm::style::Color` to a `nu_ansi_term::Color`.
-fn convert_color(color: crossterm::style::Color) -> Color {
+pub fn convert_color(color: crossterm::style::Color) -> Color {
     match color {
         crossterm::style::Color::Black => Color::Black,
         crossterm::style::Color::DarkGrey => Color::Black,
@@ -133,7 +133,7 @@ impl StyledText {
         let mut right_string = String::new();
 
         let multiline_prompt = prompt.render_prompt_multiline_indicator();
-        let mut prompt_style = Style::new().fg(prompt.get_prompt_multiline_color());
+        let mut prompt_style = Style::new().fg(convert_color(prompt.get_indicator_color()));
         if let Some(bg_color) = prompt.get_indicator_background_color() {
             prompt_style = prompt_style.on(convert_color(bg_color));
         }
