@@ -1,6 +1,6 @@
 # Patches
 
-- allow setting indicator colors, foreground and background, in `Prompt` trait
+- allow setting indicator colors, foreground and background, in `Prompt` trait for use in transient prompt
 
 # Original README
 
