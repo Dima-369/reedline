@@ -167,6 +167,8 @@ pub struct Reedline {
 
     #[cfg(feature = "external_printer")]
     external_printer: Option<ExternalPrinter<String>>,
+
+    history_max_entry_size: Option<usize>,
 }
 
 struct BufferEditor {
@@ -240,6 +242,7 @@ impl Reedline {
             kitty_protocol: KittyProtocolGuard::default(),
             #[cfg(feature = "external_printer")]
             external_printer: None,
+            history_max_entry_size: None,
         }
     }
 
@@ -542,6 +545,14 @@ impl Reedline {
     /// Do not use this if the cursor shape is set elsewhere, e.g. in the terminal settings or by ansi escape sequences.
     pub fn with_cursor_config(mut self, cursor_shapes: CursorConfig) -> Self {
         self.cursor_shapes = Some(cursor_shapes);
+        self
+    }
+
+    /// A builder to set a size limit for history entries in characters.
+    /// Entries larger than this size will not be saved.
+    #[must_use]
+    pub fn with_history_max_entry_size(mut self, max_size: usize) -> Self {
+        self.history_max_entry_size = Some(max_size);
         self
     }
 
@@ -1871,6 +1882,18 @@ impl Reedline {
             self.repaint(prompt)?;
         }
         if !buffer.is_empty() {
+            if self
+                .history_max_entry_size
+                .map_or(false, |max_size| buffer.chars().count() > max_size)
+            {
+                // Buffer is too large, don't save to history but still return as a success.
+                // Clear the buffer and reset the undo stack as if it were a normal submission.
+                self.run_edit_commands(&[EditCommand::Clear]);
+                self.editor.reset_undo_stack();
+
+                return Ok(EventStatus::Exits(Signal::Success(buffer)));
+            }
+
             let mut entry = HistoryItem::from_command_line(&buffer);
             entry.session_id = self.get_history_session_id();
 
