@@ -1,5 +1,6 @@
 # Patches
 
+- added `.with_history_max_entry_size(500)` to avoid insertion of long lines into history
 - allow setting indicator colors, foreground and background, in `Prompt` trait for use in transient prompt
 
 # Original README
